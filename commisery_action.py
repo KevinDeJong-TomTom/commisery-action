@@ -72,9 +72,6 @@ def main(token: str, repository: str, pull_request_id: int) -> int:
     repo = Github(token).get_repo(repository)
     pr = repo.get_pull(int(pull_request_id))
 
-    if not check_message(pr.title):
-        errors += 1
-
     commits = pr.get_commits()
 
     for commit in commits:
