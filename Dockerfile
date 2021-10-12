@@ -22,7 +22,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Install commisery
-RUN pip install commisery==0.1.1 PyGithub==1.53 Click==7.1.2
+RUN pip install commisery==0.9.0 PyGithub==1.53 Click==7.1.2
 
 # Copy action
 COPY commisery_action.py /commisery_action.py

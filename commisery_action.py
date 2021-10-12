@@ -22,22 +22,22 @@ from github import Github
 
 
 def convert_to_multiline(text: str) -> str:
-    return text.replace('\n', '%0A')
+    return text.replace("\n", "%0A")
 
 
 def strip_ansicolors(text: str) -> str:
-    return re.sub('\x1b\\[(K|.*?m)', '', text)
+    return re.sub("\x1b\\[(K|.*?m)", "", text)
 
 
 def error_message(message: str):
     message = strip_ansicolors(convert_to_multiline(message))
-    print(f'::error ::{message}')
+    print(f"::error::{message}")
 
 
 def message_to_file(message: str) -> str:
-    filename = 'commit_message'
+    filename = "commit_message"
 
-    f = open(filename, 'w+')
+    f = open(filename, "w+")
     f.write(message)
     f.close()
 
@@ -48,9 +48,9 @@ def check_message(message: str) -> bool:
     proc = subprocess.Popen(
         ["commisery-verify-msg", message_to_file(message)],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
     )
-    stdout, stderr = proc.communicate()
+    _, stderr = proc.communicate()
 
     if proc.returncode > 0:
         error_message(stderr.decode("utf-8"))
@@ -60,12 +60,9 @@ def check_message(message: str) -> bool:
 
 
 @click.command()
-@click.option('-t', '--token',
-              required=True, help='GitHub Token')
-@click.option('-r', '--repository',
-              required=True,  help='GitHub repository')
-@click.option('-p', '--pull-request-id',
-              required=True, help='Pull Request identifier')
+@click.option("-t", "--token", required=True, help="GitHub Token")
+@click.option("-r", "--repository", required=True, help="GitHub repository")
+@click.option("-p", "--pull-request-id", required=True, help="Pull Request identifier")
 def main(token: str, repository: str, pull_request_id: int) -> int:
     errors = 0
 
@@ -84,5 +81,5 @@ def main(token: str, repository: str, pull_request_id: int) -> int:
     exit(1 if errors else 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
