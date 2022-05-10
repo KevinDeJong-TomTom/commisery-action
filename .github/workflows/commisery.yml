@@ -25,6 +25,11 @@ jobs:
     - name: Check-out the repo under $GITHUB_WORKSPACE
       uses: actions/checkout@v2
 
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.8'
+
     - name: Run Commisery
       uses: ./
       with:
