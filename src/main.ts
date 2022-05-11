@@ -38,7 +38,7 @@ function strip_ansicolor(message: string) {
  * @param message
  * @returns multiline message
  */
-function get_error_subjects(message: string, sha: string) {
+function get_error_subjects(message: string) {
   let errors: string[] = [];
 
   for (var line of strip_ansicolor(message).split("\n")) {
@@ -53,14 +53,47 @@ function get_error_subjects(message: string, sha: string) {
 }
 
 /**
+ * Confirms whether Python >=3.8 and pip are present on the runner
+ */
+async function check_prerequisites() {
+  const python_version_re = /Python\s*(\d+)\.(\d+)\.(\d+)/;
+  const { stdout: python_version } = await exec.getExecOutput(
+    "python",
+    ["--version"],
+    { silent: true }
+  );
+  const match = python_version_re.exec(python_version);
+
+  if (!match || match.length != 4) {
+    throw new Error("Unable to determine the installed Python version.");
+  }
+
+  if (!(parseInt(match[1]) == 3 && parseInt(match[2]) >= 8)) {
+    throw new Error(
+      `Incorrect Python version installed; found ${match[1]}.${match[2]}.${match[3]}, expected >= 3.8.0`
+    );
+  }
+
+  try {
+    const { stdout: pip_version } = await exec.getExecOutput(
+      "python",
+      ["-m", "pip", "--version"],
+      { silent: true }
+    );
+  } catch {
+    throw new Error("Unable to determine the installed Pip version.");
+  }
+}
+
+/**
  * Installs the latest version of commisery
  */
 async function prepare_environment() {
-  // Upgrade pip to the latest version
-  await exec.exec("python -m pip install --upgrade pip");
+  // Ensure Python (>= 3.8) and pip are installed
+  await check_prerequisites();
 
   // Install latest version of commisery
-  await exec.exec("python -m pip install --upgrade commisery");
+  await exec.exec("python", ["-m", "pip", "install", "--upgrade", "commisery"]);
 }
 
 /**
@@ -111,44 +144,48 @@ async function is_commit_valid(commit): Promise<[boolean, string[]]> {
     core.debug("Error detected while executing commisery");
   }
 
-  return [stderr == "", get_error_subjects(stderr, commit.sha)];
+  return [stderr == "", get_error_subjects(stderr)];
 }
 
 async function run() {
   // Ensure that commisery is installed
-  await prepare_environment();
+  try {
+    await prepare_environment();
 
-  let [owner, repo] = (process.env.GITHUB_REPOSITORY || "").split("/");
+    let [owner, repo] = (process.env.GITHUB_REPOSITORY || "").split("/");
 
-  // Validate each commit against Conventional Commit standard
-  let commits = await get_commits(owner, repo, core.getInput("pull_request"));
-  let success = true;
+    // Validate each commit against Conventional Commit standard
+    let commits = await get_commits(owner, repo, core.getInput("pull_request"));
+    let success = true;
 
-  for (const commit of commits) {
-    let [valid, errors] = await is_commit_valid(commit);
+    for (const commit of commits) {
+      let [valid, errors] = await is_commit_valid(commit);
 
-    if (!valid) {
-      core.summary
-        .addHeading(commit.commit.message, 2)
-        .addRaw(
-          `<b>SHA:</b> <a href="${commit.html_url}"><code>${commit.sha}</code></a>`
-        );
+      if (!valid) {
+        core.summary
+          .addHeading(commit.commit.message, 2)
+          .addRaw(
+            `<b>SHA:</b> <a href="${commit.html_url}"><code>${commit.sha}</code></a>`
+          );
 
-      for (var error of errors) {
-        core.summary.addCodeBlock(error);
+        for (var error of errors) {
+          core.summary.addCodeBlock(error);
+        }
+
+        success = false;
       }
-
-      success = false;
     }
-  }
 
-  if (!success) {
-    core.setFailed(
-      `Commits in your Pull Request are not compliant to Conventional Commits`
-    );
+    if (!success) {
+      core.setFailed(
+        `Commits in your Pull Request are not compliant to Conventional Commits`
+      );
 
-    // Post summary
-    core.summary.write();
+      // Post summary
+      core.summary.write();
+    }
+  } catch (ex) {
+    core.setFailed((ex as Error).message);
   }
 }
 
