@@ -10026,7 +10026,7 @@ function get_error_subjects(message) {
 function check_prerequisites() {
     return __awaiter(this, void 0, void 0, function* () {
         const python_version_re = /Python\s*(\d+)\.(\d+)\.(\d+)/;
-        const { stdout: python_version } = yield exec.getExecOutput("python", ["--version"], { silent: true });
+        const { stdout: python_version } = yield exec.getExecOutput("python3", ["--version"], { silent: true });
         const match = python_version_re.exec(python_version);
         if (!match || match.length != 4) {
             throw new Error("Unable to determine the installed Python version.");
@@ -10035,7 +10035,7 @@ function check_prerequisites() {
             throw new Error(`Incorrect Python version installed; found ${match[1]}.${match[2]}.${match[3]}, expected >= 3.8.0`);
         }
         try {
-            const { stdout: pip_version } = yield exec.getExecOutput("python", ["-m", "pip", "--version"], { silent: true });
+            const { stdout: pip_version } = yield exec.getExecOutput("python3", ["-m", "pip", "--version"], { silent: true });
         }
         catch (_a) {
             throw new Error("Unable to determine the installed Pip version.");
@@ -10050,7 +10050,7 @@ function prepare_environment() {
         // Ensure Python (>= 3.8) and pip are installed
         yield check_prerequisites();
         // Install latest version of commisery
-        yield exec.exec("python", ["-m", "pip", "install", "--upgrade", "commisery"]);
+        yield exec.exec("python3", ["-m", "pip", "install", "--upgrade", "commisery"]);
     });
 }
 /**
