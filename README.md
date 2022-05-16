@@ -5,7 +5,7 @@ standard using [Commisery]
 ## Prerequisites
 
 * [Commisery] requires at least `Python>3.8`
-* `pip` needs to be installed for this Python version
+* `pip` needs to be installed for this Python version 
 
 ## Usage
 
