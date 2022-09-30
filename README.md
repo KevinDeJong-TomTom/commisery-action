@@ -1,3 +1,8 @@
+> :warning::warning::warning: **THIS ACTIONS HAS BEEN DEPRECATED IN FAVOR OF OUR [OFFICIAL COMMISERY ACTION](https://github.com/tomtom-international/commisery-action)** :warning::warning::warning:
+> 
+> There will be **NO** maintenance support of this version and the action has been **DELISTED** from the GitHub Marketplace
+
+
 # Check your commits against Conventional Commits using Commisery
 
 Using this GitHub action, scan all commits in your Pull Request against the [Conventional Commits]
